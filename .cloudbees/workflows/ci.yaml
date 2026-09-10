@@ -29,8 +29,19 @@ jobs:
           echo "=== SCA (pip-audit) ==="
           pip-audit -r requirements.txt || true
 
-      - name: Scan with SonarQube bundled action
+      - id: sonar
+        name: Scan with SonarQube bundled action
         uses: https://github.com/cloudbees-io/sonarqube-bundled-sast-scan-code@v1
         with:
           language: LANGUAGE_PYTHON
           sonar-exclusion: "tests/**,.venv/**"
+
+      # 스캔이 실제로 findings를 만들었는지 대시보드 없이 확인하기 위한 진단 스텝.
+      - name: Report scan counts
+        uses: docker://alpine:latest
+        run: |
+          echo "critical  = '${{ steps.sonar.outputs.critical-count }}'"
+          echo "very-high = '${{ steps.sonar.outputs.very-high-count }}'"
+          echo "high      = '${{ steps.sonar.outputs.high-count }}'"
+          echo "medium    = '${{ steps.sonar.outputs.medium-count }}'"
+          echo "low       = '${{ steps.sonar.outputs.low-count }}'"
