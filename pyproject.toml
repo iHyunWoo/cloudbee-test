@@ -19,3 +19,6 @@ include = ["app*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Smart Tests는 JUnit XML의 file 속성으로 test path를 만든다.
+# 기본값 xunit2 는 그 속성을 빼므로 test path 데이터가 비게 된다.
+junit_family = "xunit1"
