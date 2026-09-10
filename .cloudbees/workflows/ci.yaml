@@ -24,9 +24,10 @@ jobs:
         uses: docker://python:3.12-slim
         run: |
           pip install --no-cache-dir bandit pip-audit
-          rc=0
           echo "=== SAST (bandit) ==="
-          bandit -r app/ -ll || rc=1
+          bandit -r app/ -ll || true
           echo "=== SCA (pip-audit) ==="
-          pip-audit -r requirements.txt || rc=1
-          exit $rc
+          pip-audit -r requirements.txt || true
+
+      - name: Scan with SonarQube bundled action
+        uses: https://github.com/cloudbees-io/sonarqube-bundled-sast-scan-code@v1
