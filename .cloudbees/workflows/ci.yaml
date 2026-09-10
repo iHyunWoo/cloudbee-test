@@ -47,12 +47,17 @@ jobs:
             smart-tests record session --build "$BUILD" --test-suite pytest > session.txt
           fi
 
-          # 실패해도 결과는 보내야 하므로 종료 코드를 잡아둔다.
+          # 정상 스위트: 실패하면 CI를 세운다.
           rc=0
-          pytest -q --junitxml=report.xml || rc=$?
+          pytest tests -q --ignore=tests/flaky --junitxml=report.xml || rc=$?
+
+          # flaky 스위트: 실행마다 결과가 달라지므로 CI 판정에서 제외한다.
+          # 결과는 Smart Tests 로 보내야 불건전 테스트로 집계된다.
+          pytest tests/flaky -q --junitxml=report-flaky.xml || true
 
           if [ -n "$SMART_TESTS_TOKEN" ]; then
-            smart-tests record tests --session @session.txt pytest report.xml || true
+            smart-tests record tests --session @session.txt pytest \
+              report.xml report-flaky.xml || true
           fi
           exit $rc
 
@@ -60,7 +65,7 @@ jobs:
         uses: cloudbees-io/publish-test-results@v2.0.7
         with:
           test-type: junit
-          results-path: report.xml
+          results-path: report*.xml
       - name: Security scan
         uses: docker://python:3.12-slim
         run: |

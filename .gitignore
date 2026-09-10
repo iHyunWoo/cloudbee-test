@@ -10,3 +10,4 @@ build/
 *.egg-info/
 report.xml
 session.txt
+report*.xml
