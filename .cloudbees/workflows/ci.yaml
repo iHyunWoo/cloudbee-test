@@ -25,7 +25,8 @@ jobs:
           if [ -n "$GH" ]; then echo "GH_TOKEN: 있음 (${#GH}자)"; else echo "GH_TOKEN: 비어 있음"; fi
 
       - name: Lint and test
-        uses: docker://python:3.12-slim
+        # smart-tests-cli 가 requires_python >=3.13 이라 3.12 에서는 설치되지 않는다.
+        uses: docker://python:3.13-slim
         env:
           SMART_TESTS_TOKEN: ${{ secrets.SMART_TESTS_TOKEN }}
         run: |
