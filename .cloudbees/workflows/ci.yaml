@@ -114,3 +114,16 @@ jobs:
           echo "high      = '${{ steps.trivy.outputs.high-count }}'"
           echo "medium    = '${{ steps.trivy.outputs.medium-count }}'"
           echo "low       = '${{ steps.trivy.outputs.low-count }}'"
+
+  # DORA는 component 단위로 계산되므로 build와 deploy 스텝이 이 워크플로우
+  # 안에 함께 있어야 한다. 실제 릴리스 배포는 Application 레포의
+  # deployer.yaml 이 담당하고, 이 job 은 DORA 집계용 배포 기록이다.
+  deploy:
+    needs: build
+    environment: staging
+    steps:
+      - name: Deploy
+        kind: deploy
+        uses: docker://alpine:latest
+        run: |
+          echo "deployed to staging (run ${{ cloudbees.run_id }})"
