@@ -58,6 +58,17 @@ def setup() -> bool:
     return True
 
 
+def shutdown() -> None:
+    """Rox는 데몬이 아닌 백그라운드 스레드를 띄운다.
+
+    정리하지 않으면 스크립트나 워커 프로세스가 본문이 끝나도 종료되지 않는다.
+    """
+    global _connected
+    if _connected:
+        Rox.shutdown()
+        _connected = False
+
+
 def is_connected() -> bool:
     return _connected
 

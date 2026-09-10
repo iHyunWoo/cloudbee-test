@@ -17,6 +17,7 @@ async def lifespan(app: FastAPI):
     # 키가 없으면 연결하지 않고 flag 기본값으로 동작한다.
     features.setup()
     yield
+    features.shutdown()
 
 
 app = FastAPI(
