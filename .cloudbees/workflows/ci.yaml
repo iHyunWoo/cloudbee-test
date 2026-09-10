@@ -86,6 +86,9 @@ jobs:
 
       - id: image
         name: Build and push image
+        # kind: build 는 DORA 지표가 이 스텝을 빌드로 집계하게 한다.
+        # DORA는 build와 deploy 스텝이 모두 있어야 계산된다.
+        kind: build
         uses: cloudbees-io/kaniko@v1
         with:
           context: .
