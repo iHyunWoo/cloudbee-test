@@ -1,7 +1,6 @@
 apiVersion: automation.cloudbees.io/v1alpha1
 kind: workflow
 name: ci
-
 on:
   push:
     branches:
@@ -10,16 +9,16 @@ on:
     branches:
       - main
   workflow_dispatch:
-
 jobs:
   test:
     steps:
       - name: Checkout
         uses: cloudbees-io/checkout@v1
-
       - name: Lint and test
         uses: docker://python:3.12-slim
         run: |
           pip install --no-cache-dir -r requirements-dev.txt
           ruff check .
           pytest -q
+      - name: scan security
+        uses: cloudbees-io/github-security-sast-scan-code@v1
