@@ -26,8 +26,13 @@ jobs:
       - name: Lint
         run: ruff check .
 
+      # flaky 스위트는 의도적으로 불안정하므로 CI 판정에서 제외한다.
+      # Smart Tests 기록은 CloudBees 워크플로우가 담당한다.
       - name: Test
-        run: pytest -q
+        run: pytest tests -q --ignore=tests/flaky
+
+      - name: Test (flaky suite, non-blocking)
+        run: pytest tests/flaky -q || true
 
   build-image:
     name: Build container image
