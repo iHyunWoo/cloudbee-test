@@ -31,7 +31,7 @@ jobs:
 
       - id: sonar
         name: Scan with SonarQube bundled action
-        uses: https://github.com/cloudbees-io/sonarqube-bundled-sast-scan-code@v1
+        uses: https://github.com/cloudbees-io/sonarqube-bundled-sast-scan-code@v2.1
         with:
           language: LANGUAGE_PYTHON
           sonar-exclusion: "tests/**,.venv/**"
