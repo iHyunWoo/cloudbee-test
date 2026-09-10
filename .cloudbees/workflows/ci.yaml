@@ -20,5 +20,13 @@ jobs:
           pip install --no-cache-dir -r requirements-dev.txt
           ruff check .
           pytest -q
-      - name: scan security
-        uses: cloudbees-io/github-security-sast-scan-code@v1
+      - name: Security scan
+        uses: docker://python:3.12-slim
+        run: |
+          pip install --no-cache-dir bandit pip-audit
+          rc=0
+          echo "=== SAST (bandit) ==="
+          bandit -r app/ -ll || rc=1
+          echo "=== SCA (pip-audit) ==="
+          pip-audit -r requirements.txt || rc=1
+          exit $rc
