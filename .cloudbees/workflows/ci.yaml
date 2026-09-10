@@ -51,11 +51,18 @@ jobs:
           echo "repository    = '${{ cloudbees.scm.repository }}'"
           echo "run_id        = '${{ cloudbees.run_id }}'"
 
-      # 두 번째 스캐너. SonarQube 결과만 대시보드에 안 뜨는 것인지,
-      # 아니면 어떤 스캐너를 써도 안 뜨는 것인지 가르기 위한 대조군.
-      # only-verified=false: 심어둔 시크릿은 가짜라 검증이 안 되므로 꺼야 잡힌다.
-      - name: Secret scan with TruffleHog
-        uses: https://github.com/cloudbees-io/trufflehog-secret-scan-code@v1.0.14
-        with:
-          branch: ${{ cloudbees.scm.branch }}
-          only-verified: "false"
+      # Gitleaks는 마켓플레이스에 등재된 시크릿 스캐너이고, asset 등록 단계
+      # (generate-references)를 포함한 plugin-chain 구조라 findings가
+      # 컴포넌트에 제대로 붙는다. 마켓플레이스에서 Gitleaks 활성화 필요.
+      - id: gitleaks
+        name: Secret scan with Gitleaks
+        uses: https://github.com/cloudbees-io/gitleaks-plugin@v1.0.7
+
+      - name: Report Gitleaks counts
+        uses: docker://alpine:latest
+        run: |
+          echo "critical  = '${{ steps.gitleaks.outputs.critical-count }}'"
+          echo "very-high = '${{ steps.gitleaks.outputs.very-high-count }}'"
+          echo "high      = '${{ steps.gitleaks.outputs.high-count }}'"
+          echo "medium    = '${{ steps.gitleaks.outputs.medium-count }}'"
+          echo "low       = '${{ steps.gitleaks.outputs.low-count }}'"
