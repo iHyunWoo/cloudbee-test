@@ -16,10 +16,35 @@ jobs:
         uses: cloudbees-io/checkout@v1
       - name: Lint and test
         uses: docker://python:3.12-slim
+        env:
+          SMART_TESTS_TOKEN: ${{ secrets.SMART_TESTS_TOKEN }}
         run: |
-          pip install --no-cache-dir -r requirements-dev.txt
+          pip install --no-cache-dir -r requirements-dev.txt smart-tests
           ruff check .
-          pytest -q
+
+          # Smart Tests는 build -> session -> tests 순서로 기록해야 연결된다.
+          # 토큰이 없으면 전송을 건너뛰고 테스트만 돌린다.
+          BUILD="run-${{ cloudbees.run_id }}"
+          SESSION="$BUILD-pytest"
+          if [ -n "$SMART_TESTS_TOKEN" ]; then
+            smart-tests record build --build "$BUILD"
+            smart-tests record session --build "$BUILD" --session "$SESSION"
+          fi
+
+          # 실패해도 결과는 보내야 하므로 종료 코드를 잡아둔다.
+          rc=0
+          pytest -q --junitxml=report.xml || rc=$?
+
+          if [ -n "$SMART_TESTS_TOKEN" ]; then
+            smart-tests record tests pytest --session "$SESSION" report.xml || true
+          fi
+          exit $rc
+
+      - name: Publish test results
+        uses: cloudbees-io/publish-test-results@v2.0.7
+        with:
+          test-type: junit
+          results-path: report.xml
       - name: Security scan
         uses: docker://python:3.12-slim
         run: |
