@@ -155,7 +155,9 @@ jobs:
   # deployer.yaml 이 담당하고, 이 job 은 DORA 집계용 배포 기록이다.
   deploy:
     needs: build
-    environment: staging
+    # environment: staging
+    #   Environment 엔티티가 실제로 생성된 뒤에 다시 넣는다.
+    #   없는 이름을 쓰면 워크플로우 해석 단계에서 전체가 실패한다.
     steps:
       - name: Deploy
         kind: deploy
