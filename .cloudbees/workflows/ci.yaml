@@ -66,3 +66,48 @@ jobs:
           echo "high      = '${{ steps.gitleaks.outputs.high-count }}'"
           echo "medium    = '${{ steps.gitleaks.outputs.medium-count }}'"
           echo "low       = '${{ steps.gitleaks.outputs.low-count }}'"
+
+  # 이미지 빌드 → GHCR push → artifact 등록 → 바이너리(컨테이너) 스캔.
+  # kaniko가 빌드와 동시에 artifact version을 등록한다(artifact-ids 출력).
+  # trivy-plugin은 레지스트리가 아니라 kaniko가 뽑아준 tar를 스캔한다.
+  build:
+    needs: test
+    steps:
+      - name: Checkout
+        uses: cloudbees-io/checkout@v1
+
+      - id: dockerconfig
+        name: Configure container registry credentials
+        uses: cloudbees-io/configure-oci-credentials@v1
+        with:
+          registry: ghcr.io
+          username: iHyunWoo
+          password: ${{ secrets.GH_TOKEN }}
+
+      - id: image
+        name: Build and push image
+        uses: cloudbees-io/kaniko@v1.2
+        with:
+          context: .
+          dockerfile: Dockerfile
+          destination: ghcr.io/ihyunwoo/cloudbee-test:${{ cloudbees.run_id }},ghcr.io/ihyunwoo/cloudbee-test:latest
+          tar-path: image.tar
+
+      - id: trivy
+        name: Scan image with Trivy
+        uses: https://github.com/cloudbees-io/trivy-plugin@v2.0.6
+        with:
+          binary-tar-path: image.tar
+
+      - name: Report build and scan results
+        uses: docker://alpine:latest
+        run: |
+          echo "image        = '${{ steps.image.outputs.image }}'"
+          echo "digest       = '${{ steps.image.outputs.digest }}'"
+          echo "artifact-ids = '${{ steps.image.outputs.artifact-ids }}'"
+          echo "--- Trivy ---"
+          echo "critical  = '${{ steps.trivy.outputs.critical-count }}'"
+          echo "very-high = '${{ steps.trivy.outputs.very-high-count }}'"
+          echo "high      = '${{ steps.trivy.outputs.high-count }}'"
+          echo "medium    = '${{ steps.trivy.outputs.medium-count }}'"
+          echo "low       = '${{ steps.trivy.outputs.low-count }}'"
