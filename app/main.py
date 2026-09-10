@@ -1,17 +1,30 @@
 import os
 import subprocess
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from jinja2 import Template
 
-from app import config, db
+from app import config, db, features
 from app.models import HealthResponse, Item, ItemCreate
 
 VERSION = "0.1.0"
 
-app = FastAPI(title="cloudbee-test API", version=VERSION, debug=config.DEBUG)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 키가 없으면 연결하지 않고 flag 기본값으로 동작한다.
+    features.setup()
+    yield
+
+
+app = FastAPI(
+    title="cloudbee-test API",
+    version=VERSION,
+    debug=config.DEBUG,
+    lifespan=lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,7 +51,9 @@ def health() -> HealthResponse:
 
 @app.get("/items", response_model=list[Item])
 def list_items() -> list[Item]:
-    return list(_items.values())
+    if not features.flags.enable_items_api.is_enabled():
+        raise HTTPException(status_code=503, detail="Items API is disabled")
+    return list(_items.values())[: features.flags.max_items.get_value()]
 
 
 @app.post("/items", response_model=Item, status_code=201)
@@ -100,3 +115,9 @@ def debug_config() -> dict:
         "database_url": config.DATABASE_URL,
         "env": dict(os.environ),
     }
+
+
+@app.get("/features")
+def feature_flags() -> dict:
+    """현재 flag 값을 그대로 보여준다. 대시보드에서 값을 바꾸면 여기서 확인된다."""
+    return features.current_values()

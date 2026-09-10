@@ -2,3 +2,4 @@ fastapi==0.118.0
 uvicorn[standard]==0.37.0
 pydantic>=2.12.0
 jinja2==3.1.2
+rox==6.0.1

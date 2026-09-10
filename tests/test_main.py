@@ -62,3 +62,14 @@ def test_delete_item(client):
 def test_create_item_validation_error(client):
     res = client.post("/items", json={"name": "", "price": -1})
     assert res.status_code == 422
+
+
+def test_features_endpoint_without_key(client):
+    """환경 키가 없으면 연결하지 않고 flag 기본값을 그대로 반환한다."""
+    res = client.get("/features")
+    assert res.status_code == 200
+    body = res.json()
+    assert body["connected"] is False
+    assert body["enable_items_api"] is True
+    assert body["greeting_style"] == "plain"
+    assert body["max_items"] == 100
