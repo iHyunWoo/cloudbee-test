@@ -50,3 +50,12 @@ jobs:
           echo "branch        = '${{ cloudbees.scm.branch }}'"
           echo "repository    = '${{ cloudbees.scm.repository }}'"
           echo "run_id        = '${{ cloudbees.run_id }}'"
+
+      # 두 번째 스캐너. SonarQube 결과만 대시보드에 안 뜨는 것인지,
+      # 아니면 어떤 스캐너를 써도 안 뜨는 것인지 가르기 위한 대조군.
+      # only-verified=false: 심어둔 시크릿은 가짜라 검증이 안 되므로 꺼야 잡힌다.
+      - name: Secret scan with TruffleHog
+        uses: https://github.com/cloudbees-io/trufflehog-secret-scan-code@v1.0.14
+        with:
+          branch: ${{ cloudbees.scm.branch }}
+          only-verified: "false"
