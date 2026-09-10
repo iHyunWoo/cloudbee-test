@@ -14,6 +14,16 @@ jobs:
     steps:
       - name: Checkout
         uses: cloudbees-io/checkout@v1
+      # 시크릿이 워크플로우까지 도달하는지 확인한다. 값은 찍지 않고 길이만 본다.
+      - name: Check secrets
+        uses: docker://alpine:latest
+        env:
+          ST: ${{ secrets.SMART_TESTS_TOKEN }}
+          GH: ${{ secrets.GH_TOKEN }}
+        run: |
+          if [ -n "$ST" ]; then echo "SMART_TESTS_TOKEN: 있음 (${#ST}자)"; else echo "SMART_TESTS_TOKEN: 비어 있음"; fi
+          if [ -n "$GH" ]; then echo "GH_TOKEN: 있음 (${#GH}자)"; else echo "GH_TOKEN: 비어 있음"; fi
+
       - name: Lint and test
         uses: docker://python:3.12-slim
         env:
