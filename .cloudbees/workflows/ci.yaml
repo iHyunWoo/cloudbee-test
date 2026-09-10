@@ -86,7 +86,7 @@ jobs:
 
       - id: image
         name: Build and push image
-        uses: cloudbees-io/kaniko@v1.2
+        uses: cloudbees-io/kaniko@v1
         with:
           context: .
           dockerfile: Dockerfile
