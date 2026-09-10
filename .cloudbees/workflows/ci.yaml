@@ -45,3 +45,8 @@ jobs:
           echo "high      = '${{ steps.sonar.outputs.high-count }}'"
           echo "medium    = '${{ steps.sonar.outputs.medium-count }}'"
           echo "low       = '${{ steps.sonar.outputs.low-count }}'"
+          echo "--- findings가 붙을 asset 매칭 키 ---"
+          echo "repositoryUrl = '${{ cloudbees.scm.repositoryUrl }}'"
+          echo "branch        = '${{ cloudbees.scm.branch }}'"
+          echo "repository    = '${{ cloudbees.scm.repository }}'"
+          echo "run_id        = '${{ cloudbees.run_id }}'"
