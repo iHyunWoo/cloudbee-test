@@ -2,6 +2,9 @@
 
 CloudBees 워크플로우 테스트용 간단한 FastAPI 앱.
 
+> ⚠️ 보안 스캐너 검증을 위해 **의도적인 취약점**이 포함되어 있습니다.
+> 목록은 [SECURITY_TEST_NOTES.md](SECURITY_TEST_NOTES.md) 참고. 배포 금지.
+
 ## 구조
 
 ```

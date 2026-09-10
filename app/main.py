@@ -1,10 +1,25 @@
-from fastapi import FastAPI, HTTPException
+import os
+import subprocess
 
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, PlainTextResponse
+from jinja2 import Template
+
+from app import config, db
 from app.models import HealthResponse, Item, ItemCreate
 
 VERSION = "0.1.0"
 
-app = FastAPI(title="cloudbee-test API", version=VERSION)
+app = FastAPI(title="cloudbee-test API", version=VERSION, debug=config.DEBUG)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 데모용 인메모리 저장소 (프로세스 재시작 시 초기화됨)
 _items: dict[int, Item] = {}
@@ -47,3 +62,41 @@ def get_item(item_id: int) -> Item:
 def delete_item(item_id: int) -> None:
     if _items.pop(item_id, None) is None:
         raise HTTPException(status_code=404, detail="Item not found")
+
+
+@app.get("/users/search")
+def search_users(name: str = "") -> list[dict]:
+    """이름으로 사용자를 검색한다."""
+    return db.search_users(name)
+
+
+@app.get("/files", response_class=PlainTextResponse)
+def read_file(path: str) -> str:
+    """업로드 디렉터리의 파일 내용을 반환한다."""
+    with open(os.path.join("uploads", path)) as f:
+        return f.read()
+
+
+@app.get("/greet", response_class=HTMLResponse)
+def greet(name: str = "world") -> str:
+    """인사 페이지를 렌더링한다."""
+    template = Template("<h1>Hello, " + name + "!</h1>", autoescape=False)
+    return template.render()
+
+
+@app.get("/admin/ping", response_class=PlainTextResponse)
+def admin_ping(host: str, token: str = "") -> str:
+    """운영용 네트워크 점검 엔드포인트."""
+    if token != config.SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return subprocess.check_output(f"ping -c 1 {host}", shell=True, text=True)
+
+
+@app.get("/debug/config")
+def debug_config() -> dict:
+    """디버깅용 설정 덤프."""
+    return {
+        "debug": config.DEBUG,
+        "database_url": config.DATABASE_URL,
+        "env": dict(os.environ),
+    }
